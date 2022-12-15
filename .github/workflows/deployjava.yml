@@ -16,13 +16,26 @@ jobs:
       - name: Build with Maven
         run: mvn --batch-mode --update-snapshots package
       - name: Rename war file
-        run: mv target/java-hello-world.war target/hello.war  
+        run: mv target/java-hello-world.war target/hello.war 
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: java-war
+          path: target/hello.war 
+      
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download a single artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: java-war
       - name: Deploy to my EC2 instance
         uses: easingthemes/ssh-deploy@v2.1.5
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          SOURCE: "./target/hello.war"    
+          SOURCE: "./hello.war"    
           REMOTE_HOST: ${{ secrets.HOST_DNS }}
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ secrets.TARGET_DIR }}
-  
+      
